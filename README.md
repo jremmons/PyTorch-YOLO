@@ -1,8 +1,15 @@
 # PyTorch-YOLO
 
-Author: Rui Wang, Yiyun Yao
+Author: Rui Wang, 2yun Yao
 
 Implement YOLO(You Only Look Once) using PyTorch.
+
+## TODO
+- [ ] Tiny-YOLO arch
+- [ ] IOU
+- [ ] NMS
+- [ ] Draw bounding box
+- [ ] Detection
 
 ## Description of Files
 
