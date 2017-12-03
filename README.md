@@ -5,7 +5,7 @@ Author: Rui Wang, 2yun Yao
 Implement YOLO(You Only Look Once) using PyTorch.
 
 ## TODO
-- [ ] Tiny-YOLO arch
+- [x] Tiny-YOLO arch with weights loading
 - [ ] IOU
 - [ ] NMS
 - [ ] Draw bounding box
