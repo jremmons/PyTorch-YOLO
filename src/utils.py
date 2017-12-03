@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from PIL import Image
 
@@ -34,6 +34,10 @@ class_set = [
 
 DATA_BASE_DIR = "../data/train"
 TRAINING_IMAGE_DIR = "train_img/"
+
+
+def load_class_names():
+    return class_set
 
 
 def generate_object_dict(class_index, bndbox, w, h):
@@ -122,8 +126,8 @@ def main():
     print("Train data dictionary:")
     print(train_dict)
 
-    # print("Valid data dictionary:")
-    # print(valid_dict)
+    print("Valid data dictionary:")
+    print(valid_dict)
 
 
 if __name__ == "__main__":
