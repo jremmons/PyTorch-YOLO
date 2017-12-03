@@ -1,6 +1,6 @@
 # PyTorch-YOLO
 
-Author: Rui Wang, 2yun Yao
+Author: Rui Wang, Yiyun Yao
 
 Implement YOLO(You Only Look Once) using PyTorch.
 
