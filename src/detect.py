@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 
 from PIL import ImageDraw
-'''
-Data format in Bounding boxes:
-    [0, 1, 2, 3]: Center X, Center Y, Length X, Length Y
-    [4]: Trust
-    [5]: Class Index
-'''
 
 
 def get_color(indice, classes):
@@ -17,6 +11,12 @@ def get_color(indice, classes):
 
 
 def draw_box(img, boxes, color, class_names=None, save_name=None):
+    '''
+    Data format in Bounding boxes:
+        [0, 1, 2, 3]: Center X, Center Y, Length X, Length Y
+        [4]: Trust
+        [5]: Class Index
+    '''
     w = img.width
     h = img.height
     draw = ImageDraw.Draw(img)
