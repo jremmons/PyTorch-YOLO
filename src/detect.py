@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 
 from PIL import ImageDraw
+'''
+Data format in Bounding boxes:
+    [0, 1, 2, 3]: Center X, Center Y, Length X, Length Y
+    [4]: Trust
+    [5]: Class Index
+'''
 
 
 def get_color(indice, classes):
@@ -24,7 +30,7 @@ def draw_box(img, boxes, color, class_names=None, save_name=None):
         rgb = [255, 0, 0]
         if class_names != None:
             classes = len(class_names)
-            class_id = box[4]  # if class_id is box[4]
+            class_id = box[5]  # if class_id is box[5]
             rgb = get_color(class_id, classes)
             draw.text((x1, y1), class_names[class_id], fill=rgb)
         draw.rectangle([x1, y1, x2, y2], outline=rgb)
