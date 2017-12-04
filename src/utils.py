@@ -1,11 +1,14 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
+import torch
+import numpy as np
 from PIL import Image
 
 import xml.etree.ElementTree as ET
 
 from multiprocessing import Pool
 import os
+
 
 data_sets = [("2007", "train"), ("2007", "val")]
 
@@ -34,6 +37,10 @@ class_set = [
 
 DATA_BASE_DIR = "../data/train"
 TRAINING_IMAGE_DIR = "train_img/"
+
+
+def load_class_names():
+    return class_set
 
 
 def generate_object_dict(class_index, bndbox, w, h):
@@ -116,14 +123,55 @@ def get_img_file_set(year, suffix):
     with open(os.path.join(DATA_BASE_DIR, catalog_file)) as f:
         return f.read().strip().split()
 
+def load_cnn(weights, offset, conv2d, bn=None):
+    if bn is not None:
+        n_weights = conv2d.weight.numel()
+        n_bias = bn.bias.numel()
+        bn.bias.data.copy_(torch.from_numpy(weights[offset:offset+n_bias]))
+        offset += n_bias
+        bn.weight.data.copy_(torch.from_numpy(weights[offset:offset+n_bias]))
+        offset += n_bias
+        bn.running_mean.copy_(torch.from_numpy(weights[offset:offset+n_bias]))
+        offset += n_bias
+        bn.running_var.copy_(torch.from_numpy(weights[offset:offset+n_bias]))
+        offset += n_bias
+        conv2d.weight.data.copy_(torch.from_numpy(weights[offset:offset+n_weights]).view_as(conv2d.weight.data))
+        offset += n_weights
+    else:
+        n_weights = conv2d.weight.numel()
+        n_bias = conv2d.bias.numel()
+        conv2d.bias.data.copy_(torch.from_numpy(weights[offset:offset+n_bias]))
+        offset += n_bias
+        conv2d.weight.data.copy_(torch.from_numpy(weights[offset:offset+n_weights]).view_as(conv2d.weight.data))
+        offset += n_weights
+
+    return offset
+
+
+def load_weights(model, path):
+    weights = np.fromfile(path, dtype=np.float32)
+
+    offset = 4
+    offset = load_cnn(weights, offset, conv2d=model[0],  bn=model[1])
+    offset = load_cnn(weights, offset, conv2d=model[4],  bn=model[5])
+    offset = load_cnn(weights, offset, conv2d=model[8],  bn=model[9])
+    offset = load_cnn(weights, offset, conv2d=model[12], bn=model[13])
+    offset = load_cnn(weights, offset, conv2d=model[16], bn=model[17])
+    offset = load_cnn(weights, offset, conv2d=model[20], bn=model[21])
+    offset = load_cnn(weights, offset, conv2d=model[24], bn=model[25])
+    offset = load_cnn(weights, offset, conv2d=model[27], bn=model[28])
+    offset = load_cnn(weights, offset, conv2d=model[30])
+
+    print ('Weights loading done.')
+
 
 def main():
     train_dict, valid_dict = get_train_valid_dict()
     print("Train data dictionary:")
     print(train_dict)
 
-    # print("Valid data dictionary:")
-    # print(valid_dict)
+    print("Valid data dictionary:")
+    print(valid_dict)
 
 
 if __name__ == "__main__":
