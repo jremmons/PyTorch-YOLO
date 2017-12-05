@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import torch
 import numpy as np
 from PIL import Image
@@ -8,6 +7,8 @@ import xml.etree.ElementTree as ET
 
 from multiprocessing import Pool
 import os
+
+from .model.tinyyolo import *
 
 
 data_sets = [("2007", "train"), ("2007", "val")]
@@ -164,6 +165,105 @@ def load_weights(model, path):
 
     print ('Weights loading done.')
 
+def preprocess(im):
+    width, height = im.size
+    im = torch.ByteTensor(torch.ByteStorage.from_buffer(im.tobytes()))
+    im = im.view(height, width, 3).transpose(0, 1).transpose(0, 2).contiguous()
+    im = im.view(1, 3, height, width)
+    im = im.float().div(255.0)
+    return im
+
+
+def load_class_names(namesfile):
+    class_names = []
+    with open(namesfile, 'r') as fp:
+        lines = fp.readlines()
+    for line in lines:
+        line = line.rstrip()
+        class_names.append(line)
+    return class_names
+
+
+def get_color(indice, classes):
+    r = indice * 3141 % 255
+    g = indice * 5926 % 255
+    b = indice * 5358 % 255
+    return (r, g, b)
+
+
+def draw_box(img, boxes, color, class_names=None, save_name=None):
+    '''
+    Data format in Bounding boxes:
+        [0, 1, 2, 3]: Center X, Center Y, Length X, Length Y
+        [4]: Trust
+        [5]: Class Index
+    '''
+    w = img.width
+    h = img.height
+    draw = ImageDraw.Draw(img)
+
+    for i, box in enumerate(boxes):
+        x1 = (box[0] - box[2] / 2.0) * w
+        y1 = (box[1] - box[3] / 2.0) * h
+        x2 = (box[0] + box[2] / 2.0) * w
+        y2 = (box[1] + box[3] / 2.0) * h
+
+        rgb = [255, 0, 0]
+        if class_names != None:
+            classes = len(class_names)
+            class_id = int(box[6])  # if class_id is box[5]
+            rgb = get_color(class_id, classes)
+            draw.text((x1, y1), class_names[class_id], fill=rgb)
+
+        line = (x1,y1,x1,y2)
+        draw.line(line, fill=rgb, width=5)
+        line = (x1,y1,x2,y1)
+        draw.line(line, fill=rgb, width=5)
+        line = (x1,y2,x2,y2)
+        draw.line(line, fill=rgb, width=5)
+        line = (x2,y1,x2,y2)
+        draw.line(line, fill=rgb, width=5)
+
+    if save_name:
+        img.save(save_name)
+
+    return img
+
+def demo(tiny_yolo, mp4_file):
+    class_names = load_class_names('../../data/voc.names')
+
+    cap = cv2.VideoCapture(mp4_file)
+    if not cap.isOpened():
+        print("Unable to open the mp4 file.")
+        return
+
+    out = cv2.VideoWriter("output2.avi", cv2.VideoWriter_fourcc(*"MJPG"), 30, (640, 360))
+    i = 0
+    while True:
+        i += 1
+        res, img = cap.read()
+        # if i % 3 == 0:
+        #     continue
+        if res:
+            cv2_im = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            pil_im = Image.fromarray(cv2_im)
+
+            pil_im2 = preprocess(pil_im)
+            boxes = tiny_yolo.detect(pil_im2)
+
+            draw_img = draw_box(pil_im, boxes, None, class_names)
+
+            cv2_im2 = cv2.cvtColor(np.array(draw_img), cv2.COLOR_RGB2BGR)
+            print (cv2_im2.shape)
+
+            out.write(cv2_im2)
+
+
+    cv2.destroyAllWindows()
+    out.release()
+    cap.release()
+
+    print ('done.')
 
 def main():
     train_dict, valid_dict = get_train_valid_dict()
