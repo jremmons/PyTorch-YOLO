@@ -6,10 +6,10 @@ Implement YOLO(You Only Look Once) using PyTorch.
 
 ## TODO
 - [x] Tiny-YOLO arch with weights loading
-- [ ] IOU
-- [ ] NMS
-- [ ] Draw bounding box
-- [ ] Detection
+- [x] IOU
+- [x] NMS
+- [x] Draw bounding box
+- [x] Detection
 
 ## Description of Files
 
